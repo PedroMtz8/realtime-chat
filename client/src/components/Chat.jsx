@@ -4,7 +4,9 @@ const socket = io('http://localhost:3000', { transports: ['websocket', 'polling'
 
 export default function Chat() {
   const [messages, setMessages] = useState([]);
+  console.log(messages)
   const [inputValue, setInputValue] = useState('');
+  const [inputName, setInputName] = useState('');
   const [typingStatus, setTypingStatus] = useState('');
   const [, setIsTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false); // Nueva bandera para controlar la conexión
@@ -19,8 +21,14 @@ export default function Chat() {
     e.preventDefault();
     const message = inputValue.trim();
 
+    const data = {
+      message,
+      inputName,
+    }
+    // console.log(data)
+
     if (message) {
-      socket.emit('chat message', message);
+      socket.emit('chat message', data);
       setInputValue('');
       hideTypingStatus();
     }
@@ -41,8 +49,9 @@ export default function Chat() {
   let typingTimer;
 
   useEffect(() => {
-    socket.on('chat message', (msg) => {
-      setMessages((prevMessages) => [...prevMessages, msg]);
+    socket.on('chat message', (data) => {
+      console.log(data)
+      setMessages((prevMessages) => [...prevMessages, data]);
     });
 
     socket.on('typing', (some) => {
@@ -74,18 +83,31 @@ export default function Chat() {
   }, []);
   return (
     <div>
-      <ul id="messages">
-        {messages.map((msg, index) => (
-          <li key={index}>{msg}</li>
+      <ul id="messages" style={{ listStyleType: "none" }}>
+        {messages.map((data, index) => (
+          <div key={index} style={{ display: "flex", flexDirection: "column" }} >
+            <li style={{ fontWeight: 700 }}>{data.inputName}</li>
+            <p style={{ margin: 0 }} >{data.message}</p>
+          </div>
         ))}
       </ul>
       <form onSubmit={handleMessageSubmit}>
-        <input
-          id="message-input"
-          autoComplete="off"
-          value={inputValue}
-          onChange={handleInputChange}
-        />
+        <div style={{ display: "flex", flexDirection: "column", width: "230px" }} >
+          <input
+            type="text"
+            value={inputName}
+            onChange={(e) => setInputName(e.target.value)}
+            id='name'
+            placeholder='Ingresa tu nombre'
+          />
+          <input
+            placeholder='Escribe tu mensaje'
+            id="message-input"
+            autoComplete="off"
+            value={inputValue}
+            onChange={handleInputChange}
+          />
+        </div>
         <button type="submit">Enviar</button>
       </form>
       <p id="typing-status">{typingStatus}</p>

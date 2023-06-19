@@ -19,11 +19,14 @@ io.on('connection', (socket) => {
   console.log('Un usuario se ha conectado');
 
   // Manejar el evento de mensaje enviado
-  socket.on('chat message', (msg) => {
-    console.log('Mensaje recibido: ' + msg);
+  socket.on('chat message', (data) => {
+    // console.log("Men" msg)
+    const { message, inputName } = data;
+    // console.log(inputName, message)
+    console.log(`Mensaje recibido de ${inputName}: ` + message);
 
     // Enviar el mensaje a todos los clientes conectados
-    io.emit('chat message', msg);
+    io.emit('chat message', data);
   });
 
   // Manejar el evento de escritura (typing)
