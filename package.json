@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "server": "cd api && npm run dev",
+    "client": "cd client && npm run dev"
+  }
+}
