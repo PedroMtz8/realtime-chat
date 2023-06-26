@@ -25,7 +25,6 @@ export default function Chat() {
       name: form.name,
       message: form.message,
     }
-    // console.log(data)
 
     if (form.message) {
       socket.emit('chat message', data);
@@ -48,7 +47,7 @@ export default function Chat() {
     // setInputValue(value);
 
     if (value && name === "message") { // Validar si el cliente está conectado antes de enviar el evento de escritura (typing)
-      socket.emit('typing', true);
+      socket.emit('typing', form);
       clearTimeout(typingTimer);
       typingTimer = setTimeout(hideTypingStatus, 500);
     }
@@ -64,7 +63,7 @@ export default function Chat() {
 
     socket.on('typing', (typing) => {
       if (typing) {
-        setTypingStatus('Alguien está escribiendo...');
+        setTypingStatus(typing.name + ' está escribiendo...');
       }
       clearTimeout(typingTimer);
       // eslint-disable-next-line react-hooks/exhaustive-deps

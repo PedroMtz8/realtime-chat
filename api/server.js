@@ -30,9 +30,9 @@ io.on('connection', (socket) => {
   });
 
   // Manejar el evento de escritura (typing)
-  socket.on('typing', () => {
+  socket.on('typing', (data) => {
     // Enviar un mensaje de que el usuario está escribiendo a todos los clientes excepto al que está escribiendo
-    socket.broadcast.emit('typing', true);
+    socket.broadcast.emit('typing', data);
   });
 
 /*   socket.on('', () => {
