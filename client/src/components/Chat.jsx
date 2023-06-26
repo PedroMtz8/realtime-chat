@@ -10,11 +10,9 @@ export default function Chat() {
     message: "",
   })
   const [typingStatus, setTypingStatus] = useState('');
-  const [, setIsTyping] = useState(false);
 
   const hideTypingStatus = () => {
     setTypingStatus('');
-    setIsTyping(false);
   };
 
   const handleMessageSubmit = (e) => {
@@ -35,7 +33,6 @@ export default function Chat() {
         ...form,
         message: "",
       })
-      setIsTyping(false);
       hideTypingStatus();
     }
   };
@@ -52,7 +49,6 @@ export default function Chat() {
 
     if (value && name === "message") { // Validar si el cliente está conectado antes de enviar el evento de escritura (typing)
       socket.emit('typing', true);
-      setIsTyping(true);
       clearTimeout(typingTimer);
       typingTimer = setTimeout(hideTypingStatus, 500);
     }
@@ -62,8 +58,8 @@ export default function Chat() {
 
   useEffect(() => {
     socket.on('chat message', (data) => {
-      // console.log(data)
       setMessages((prevMessages) => [...prevMessages, data]);
+      setTypingStatus("");
     });
 
     socket.on('typing', (typing) => {
@@ -72,17 +68,15 @@ export default function Chat() {
       }
       clearTimeout(typingTimer);
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      typingTimer = setTimeout(hideTypingStatus, 2000);
+      typingTimer = setTimeout(hideTypingStatus, 1000);
     });
 
     socket.on('connect', () => {
       socket.emit('client connected');
-      // setIsConnected(true); // Actualizar el estado de conexión cuando el cliente se conecta
     });
 
     socket.on('disconnect', () => {
       socket.emit('client disconnected');
-      // setIsConnected(false); // Actualizar el estado de conexión cuando el cliente se desconecta
     });
 
 
@@ -94,17 +88,18 @@ export default function Chat() {
     };
   }, []);
   return (
-    <div>
+    <div style={{ paddingLeft: "20px" }} >
       <ul id="messages" style={{ listStyleType: "none" }}>
         {messages.map((data, index) => (
           <div key={index} style={{ display: "flex", flexDirection: "column" }} >
-            <li style={{ fontWeight: 700 }}>{data.name}</li>
-            <p style={{ margin: 0 }} >{data.message}</p>
+            <li style={{ fontWeight: 700, color: "lightsteelblue" }}>{data.name}</li>
+            <li style={{ marginLeft: "10px" }} >{data.message}</li>
           </div>
         ))}
       </ul>
-      <form onSubmit={handleMessageSubmit}>
-        <div style={{ display: "flex", flexDirection: "column", width: "230px" }} >
+      <form onSubmit={handleMessageSubmit}
+        style={{ display: "flex", flexDirection: "column", width: "max-content", gap: "5px" }} >
+        <div style={{ display: "flex", flexDirection: "column", width: "230px", marginTop: "20px", }} >
           {
             !username && (
               <input
@@ -123,19 +118,31 @@ export default function Chat() {
             name="message"
             autoComplete="off"
             value={form.message}
+            style={{ padding: "3px" }}
             onChange={handleInputChange}
           />
         </div>
-        <button type="submit">Enviar</button>
-        <button onClick={() => {
-          localStorage.removeItem("username")
-          setForm({
-            ...form,
-            name: "",
-          })
-        }} >Cambiar username</button>
+        <div style={{ display: "flex", gap: "5px" }} >
+          <button type="submit"
+            style={{ cursor: "pointer" }}
+          >
+            Enviar
+          </button>
+          <button
+            style={{ cursor: "pointer", padding: "3px" }}
+            onClick={() => {
+              localStorage.removeItem("username")
+              setForm({
+                ...form,
+                name: "",
+              })
+            }}
+          >
+            Cambiar username
+          </button>
+        </div>
       </form>
-      <p id="typing-status">{typingStatus}</p>
+      <p id="typing-status" style={{ marginTop: "10px" }} >{typingStatus}</p>
     </div>
   )
 }

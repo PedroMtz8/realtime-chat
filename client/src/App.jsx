@@ -3,10 +3,12 @@ import Chat from './components/Chat';
 function App() {
 
   return (
-    <div>
-      <div>Chat en tiempo real</div>
+    <>
+      <div>
+        <h2 style={{ padding: "20px" }} >Chat en tiempo real</h2>
+      </div>
       <Chat />
-    </div>
+    </>
   );
 }
 
