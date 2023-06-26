@@ -21,9 +21,9 @@ io.on('connection', (socket) => {
   // Manejar el evento de mensaje enviado
   socket.on('chat message', (data) => {
     // console.log("Men" msg)
-    const { message, inputName } = data;
+    const { message, name } = data;
     // console.log(inputName, message)
-    console.log(`Mensaje recibido de ${inputName}: ` + message);
+    console.log(`Mensaje recibido de ${name}: ` + message);
 
     // Enviar el mensaje a todos los clientes conectados
     io.emit('chat message', data);

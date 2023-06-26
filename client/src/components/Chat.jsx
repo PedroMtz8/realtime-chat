@@ -3,14 +3,14 @@ import { io } from 'socket.io-client';
 const socket = io('http://localhost:3000', { transports: ['websocket', 'polling', 'flashsocket'] });
 
 export default function Chat() {
+  const username = localStorage.getItem('username');
   const [messages, setMessages] = useState([]);
-  console.log(messages)
-  const [inputValue, setInputValue] = useState('');
-  const [inputName, setInputName] = useState('');
+  const [form, setForm] = useState({
+    name: username || "",
+    message: "",
+  })
   const [typingStatus, setTypingStatus] = useState('');
   const [, setIsTyping] = useState(false);
-  const [isConnected, setIsConnected] = useState(false); // Nueva bandera para controlar la conexión
-  // console.log(isConnected)
 
   const hideTypingStatus = () => {
     setTypingStatus('');
@@ -19,26 +19,38 @@ export default function Chat() {
 
   const handleMessageSubmit = (e) => {
     e.preventDefault();
-    const message = inputValue.trim();
+    // const message = inputValue.trim();
+
+    localStorage.setItem("username", form.name)
 
     const data = {
-      message,
-      inputName,
+      name: form.name,
+      message: form.message,
     }
     // console.log(data)
 
-    if (message) {
+    if (form.message) {
       socket.emit('chat message', data);
-      setInputValue('');
+      setForm({
+        ...form,
+        message: "",
+      })
+      setIsTyping(false);
       hideTypingStatus();
     }
   };
 
   const handleInputChange = (e) => {
     const value = e.target.value;
-    setInputValue(value);
+    const name = e.target.name;
 
-    if (value && isConnected) { // Validar si el cliente está conectado antes de enviar el evento de escritura (typing)
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    })
+    // setInputValue(value);
+
+    if (value && name === "message") { // Validar si el cliente está conectado antes de enviar el evento de escritura (typing)
       socket.emit('typing', true);
       setIsTyping(true);
       clearTimeout(typingTimer);
@@ -50,12 +62,12 @@ export default function Chat() {
 
   useEffect(() => {
     socket.on('chat message', (data) => {
-      console.log(data)
+      // console.log(data)
       setMessages((prevMessages) => [...prevMessages, data]);
     });
 
-    socket.on('typing', (some) => {
-      if (some) {
+    socket.on('typing', (typing) => {
+      if (typing) {
         setTypingStatus('Alguien está escribiendo...');
       }
       clearTimeout(typingTimer);
@@ -65,12 +77,12 @@ export default function Chat() {
 
     socket.on('connect', () => {
       socket.emit('client connected');
-      setIsConnected(true); // Actualizar el estado de conexión cuando el cliente se conecta
+      // setIsConnected(true); // Actualizar el estado de conexión cuando el cliente se conecta
     });
 
     socket.on('disconnect', () => {
       socket.emit('client disconnected');
-      setIsConnected(false); // Actualizar el estado de conexión cuando el cliente se desconecta
+      // setIsConnected(false); // Actualizar el estado de conexión cuando el cliente se desconecta
     });
 
 
@@ -86,29 +98,42 @@ export default function Chat() {
       <ul id="messages" style={{ listStyleType: "none" }}>
         {messages.map((data, index) => (
           <div key={index} style={{ display: "flex", flexDirection: "column" }} >
-            <li style={{ fontWeight: 700 }}>{data.inputName}</li>
+            <li style={{ fontWeight: 700 }}>{data.name}</li>
             <p style={{ margin: 0 }} >{data.message}</p>
           </div>
         ))}
       </ul>
       <form onSubmit={handleMessageSubmit}>
         <div style={{ display: "flex", flexDirection: "column", width: "230px" }} >
-          <input
-            type="text"
-            value={inputName}
-            onChange={(e) => setInputName(e.target.value)}
-            id='name'
-            placeholder='Ingresa tu nombre'
-          />
+          {
+            !username && (
+              <input
+                type="text"
+                value={form.name}
+                onChange={handleInputChange}
+                id='name'
+                name="name"
+                placeholder='Ingresa tu nombre'
+              />
+            )
+          }
           <input
             placeholder='Escribe tu mensaje'
             id="message-input"
+            name="message"
             autoComplete="off"
-            value={inputValue}
+            value={form.message}
             onChange={handleInputChange}
           />
         </div>
         <button type="submit">Enviar</button>
+        <button onClick={() => {
+          localStorage.removeItem("username")
+          setForm({
+            ...form,
+            name: "",
+          })
+        }} >Cambiar username</button>
       </form>
       <p id="typing-status">{typingStatus}</p>
     </div>
